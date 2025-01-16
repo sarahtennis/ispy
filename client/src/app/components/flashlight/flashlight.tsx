@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from "react";
 import styles from "./flashlight.module.scss";
 
-export default function Flashlight2() {
+export default function Flashlight() {
   const [isInitialMouseMove, setIsInitialMouseMove] = useState(true);
   const [moveTimeout, setMoveTimeout] = useState<NodeJS.Timeout | null>(null);
   const [shrinkInterval, setShrinkInterval] = useState<NodeJS.Timeout | null>(null);
