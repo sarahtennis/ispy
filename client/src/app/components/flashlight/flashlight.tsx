@@ -3,12 +3,16 @@
 import React, { useEffect, useState } from "react";
 import styles from "./flashlight.module.scss";
 
+const MOVED_STOPPED_TIMEOUT_MS = 100;
+const SHRINK_INTERVAL_MS = 15;
+const GROW_INTERVAL_MS = 5;
+const CIRCLE_MAX_RADIUS = 150;
+const CIRCLE_MIN_RADIUS = 125;
+
 export default function Flashlight() {
-  const [isInitialMouseMove, setIsInitialMouseMove] = useState(true);
   const [moveTimeout, setMoveTimeout] = useState<NodeJS.Timeout | null>(null);
   const [shrinkInterval, setShrinkInterval] = useState<NodeJS.Timeout | null>(null);
   const [growInterval, setGrowInterval] = useState<NodeJS.Timeout | null>(null);
-  const [hideCircle, setHideCircle] = useState(true);
   const [circleRadius, setCircleRadius] = useState(150);
   const [viewCx, setViewCx] = useState(0);
   const [viewCy, setViewCy] = useState(0);
@@ -23,10 +27,6 @@ export default function Flashlight() {
 
   useEffect(() => {
     if (!moveTimeout) {
-      if (isInitialMouseMove) {
-        setHideCircle(false);
-        setIsInitialMouseMove(false);
-      }
       startMove();
     } else {
       restartMoveTimeout();
@@ -58,24 +58,24 @@ export default function Flashlight() {
     }
 
     if (!shrinkInterval) {
-      const shrinkInt = setInterval(shrinkAction, 20);
+      const shrinkInt = setInterval(shrinkAction, SHRINK_INTERVAL_MS);
       setShrinkInterval(shrinkInt);
     }
   }
 
   function startNewTimeout() {
-    const moveCountdown = setTimeout(moveStopped, 500);
+    const moveCountdown = setTimeout(moveStopped, MOVED_STOPPED_TIMEOUT_MS);
     setMoveTimeout(moveCountdown);
   }
 
   function shrinkAction() {
     setCircleRadius(radius => {
-      if (radius <= 100) {
+      if (radius <= CIRCLE_MIN_RADIUS) {
         if (shrinkInterval) {
           clearInterval(shrinkInterval);
           setShrinkInterval(null);
         }
-        return 100;
+        return CIRCLE_MIN_RADIUS;
       }
       return radius - 1;
     });
@@ -83,12 +83,12 @@ export default function Flashlight() {
 
   function growAction() {
     setCircleRadius(radius => {
-      if (radius >= 150) {
+      if (radius >= CIRCLE_MAX_RADIUS) {
         if (growInterval) {
           clearInterval(growInterval);
           setGrowInterval(null);
         }
-        return 150;
+        return CIRCLE_MAX_RADIUS;
       }
       return radius + 1;
     });
@@ -106,7 +106,7 @@ export default function Flashlight() {
     }
     
     if (!growInterval) {
-      const growInt = setInterval(growAction, 10);
+      const growInt = setInterval(growAction, GROW_INTERVAL_MS);
       setGrowInterval(growInt);
     }
   }
