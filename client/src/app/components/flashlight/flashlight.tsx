@@ -2,9 +2,10 @@
 
 import React, { useEffect, useState } from "react";
 import styles from "./flashlight.module.scss";
+import { Coordinates, MouseMoveService } from "@/services/mouse-move-service";
 
 const MOVED_STOPPED_TIMEOUT_MS = 100;
-const SHRINK_INTERVAL_MS = 15;
+const SHRINK_INTERVAL_MS = 20;
 const GROW_INTERVAL_MS = 5;
 const CIRCLE_MAX_RADIUS = 150;
 const CIRCLE_MIN_RADIUS = 125;
@@ -13,7 +14,7 @@ export default function Flashlight() {
   const [moveTimeout, setMoveTimeout] = useState<NodeJS.Timeout | null>(null);
   const [shrinkInterval, setShrinkInterval] = useState<NodeJS.Timeout | null>(null);
   const [growInterval, setGrowInterval] = useState<NodeJS.Timeout | null>(null);
-  const [circleRadius, setCircleRadius] = useState(150);
+  const [circleRadius, setCircleRadius] = useState(CIRCLE_MAX_RADIUS);
   const [viewCx, setViewCx] = useState(0);
   const [viewCy, setViewCy] = useState(0);
   const [winWidth, setWinWidth] = useState(0);
@@ -21,7 +22,7 @@ export default function Flashlight() {
 
   useEffect(() => {
     initialSetup();
-
+    subscribeToObservables();
     // return teardown;
   }, []);
 
@@ -37,6 +38,12 @@ export default function Flashlight() {
   function initialSetup() {
     setWinWidth(window.innerWidth);
     setWinHeight(window.innerHeight);
+  }
+
+  function subscribeToObservables() {
+    MouseMoveService.instance.getMouseMoveObservable().subscribe((coords: Coordinates) => {
+      handleMouseMove(coords);
+    });
   }
 
   function startMove() {
@@ -112,13 +119,13 @@ export default function Flashlight() {
   }
 
   // Event handlers
-  function handleMouseMove(e: React.MouseEvent): void {
-    setViewCx(e.clientX);
-    setViewCy(e.clientY);
+  function handleMouseMove(coords: Coordinates): void {
+    setViewCx(coords.clientX);
+    setViewCy(coords.clientY);
   }
 
   return (
-    <div className={styles.flashlight} onMouseMove={handleMouseMove}>
+    <div className={styles.flashlight}>
       <svg width={winWidth} height={winHeight} xmlns="http://www.w3.org/2000/svg">
         {/* Define a mask */}
         <mask id="circle-mask">
