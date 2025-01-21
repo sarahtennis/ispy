@@ -1,6 +1,6 @@
 import { Observable, Subject } from 'rxjs';
 
-const MOVE_EVENT_TYPE = "mousemove";
+const MOUSE_MOVE_EVENT_TYPE = "mousemove";
 
 export interface Coordinates {
   clientX: number;
@@ -18,12 +18,12 @@ export class MouseMoveService {
   }
 
   public static registerListeners() {
-    window.addEventListener(MOVE_EVENT_TYPE, MouseMoveService.instance.onMouseMove);
+    window.addEventListener(MOUSE_MOVE_EVENT_TYPE, MouseMoveService.instance.onMouseMove);
   }
 
   public static removeListeners() {
     MouseMoveService.instance.mouseMove$.complete();
-    window.removeEventListener(MOVE_EVENT_TYPE, MouseMoveService.instance.onMouseMove);
+    window.removeEventListener(MOUSE_MOVE_EVENT_TYPE, MouseMoveService.instance.onMouseMove);
   }
 
   private onMouseMove(e: MouseEvent) {

@@ -3,6 +3,8 @@
 import React, { useEffect, useState } from "react";
 import styles from "./search-canvas.module.scss";
 
+import { WindowService, Dimensions } from "@/services/window-service";
+
 const CANVAS_ID = "search-canvas";
 const CANVAS_CLASS = "search-canvas";
 
@@ -14,9 +16,14 @@ export default function SearchCanvas() {
     initialSetup();
   }, []);
 
+  // Window dimensions have changed
+  useEffect(() => {}, [winWidth, winHeight]);
+
   function initialSetup() {
-    setWinWidth(window.innerWidth);
-    setWinHeight(window.innerHeight);
+    WindowService.getWindowResizeObservable().subscribe((dimensions: Dimensions) => {
+      setWinWidth(dimensions.width);
+      setWinHeight(dimensions.height);
+    });
   }
 
   return (

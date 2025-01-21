@@ -7,12 +7,15 @@ import Flashlight from "./components/flashlight/flashlight";
 import SearchCanvas from "./components/search-canvas/search-canvas";
 
 import { MouseMoveService } from "./services/mouse-move-service";
+import { WindowService } from "./services/window-service";
 
 export default function Home() {
   useEffect(() => {
+    WindowService.registerListeners();
     MouseMoveService.registerListeners();
 
     return () => {
+      WindowService.removeListeners();
       MouseMoveService.removeListeners();
     };
   }, []);
