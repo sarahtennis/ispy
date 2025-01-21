@@ -2,42 +2,87 @@
 
 import React, { useEffect, useState } from "react";
 import styles from "./flashlight.module.scss";
+import { Coordinates, MouseMoveService } from "@/services/mouse-move-service";
+
+const MOVED_STOPPED_TIMEOUT_MS = 100;
+const SHRINK_INTERVAL_MS = 20;
+const GROW_INTERVAL_MS = 5;
+const CIRCLE_MAX_RADIUS = 150;
+const CIRCLE_MIN_RADIUS = 125;
 
 export default function Flashlight() {
-  const [isInitialMouseMove, setIsInitialMouseMove] = useState(true);
   const [moveTimeout, setMoveTimeout] = useState<NodeJS.Timeout | null>(null);
   const [shrinkInterval, setShrinkInterval] = useState<NodeJS.Timeout | null>(null);
   const [growInterval, setGrowInterval] = useState<NodeJS.Timeout | null>(null);
-  const [hideCircle, setHideCircle] = useState(true);
-  const [circleRadius, setCircleRadius] = useState(150);
+  const [circleRadius, setCircleRadius] = useState(CIRCLE_MAX_RADIUS);
   const [viewCx, setViewCx] = useState(0);
   const [viewCy, setViewCy] = useState(0);
   const [winWidth, setWinWidth] = useState(0);
   const [winHeight, setWinHeight] = useState(0);
 
   useEffect(() => {
-    componentDidMount();
-
-    return () => {
-      componentWillUnmount();
-    };
+    initialSetup();
+    subscribeToObservables();
+    // return teardown;
   }, []);
 
-  // Lifecycle
-  function componentDidMount() {
-    initialSetup();
+  useEffect(() => {
+    if (!moveTimeout) {
+      startMove();
+    } else {
+      restartMoveTimeout();
+    }
+  }, [viewCx, viewCy]);
+
+  // Init
+  function initialSetup() {
+    setWinWidth(window.innerWidth);
+    setWinHeight(window.innerHeight);
   }
 
-  function componentWillUnmount() {}
+  function subscribeToObservables() {
+    MouseMoveService.instance.getMouseMoveObservable().subscribe((coords: Coordinates) => {
+      handleMouseMove(coords);
+    });
+  }
+
+  function startMove() {
+    shrink();
+    startNewTimeout();
+  }
+
+  function restartMoveTimeout() {
+    if (moveTimeout) {
+      clearTimeout(moveTimeout);
+    }
+    startNewTimeout();
+  }
+
+  function shrink() {
+    if (growInterval) {
+      clearInterval(growInterval);
+      setGrowInterval(null);
+    }
+
+    if (!shrinkInterval) {
+      const shrinkInt = setInterval(shrinkAction, SHRINK_INTERVAL_MS);
+      setShrinkInterval(shrinkInt);
+    }
+  }
+
+  function startNewTimeout() {
+    const moveCountdown = setTimeout(moveStopped, MOVED_STOPPED_TIMEOUT_MS);
+    setMoveTimeout(moveCountdown);
+  }
 
   function shrinkAction() {
     setCircleRadius(radius => {
-      if (radius <= 100) {
+      if (radius <= CIRCLE_MIN_RADIUS) {
         if (shrinkInterval) {
           clearInterval(shrinkInterval);
           setShrinkInterval(null);
         }
-        return 100;
+        return CIRCLE_MIN_RADIUS;
       }
       return radius - 1;
     });
@@ -45,12 +90,12 @@ export default function Flashlight() {
 
   function growAction() {
     setCircleRadius(radius => {
-      if (radius >= 150) {
+      if (radius >= CIRCLE_MAX_RADIUS) {
         if (growInterval) {
           clearInterval(growInterval);
           setGrowInterval(null);
         }
-        return 150;
+        return CIRCLE_MAX_RADIUS;
       }
       return radius + 1;
     });
@@ -66,66 +111,21 @@ export default function Flashlight() {
       clearInterval(shrinkInterval);
       setShrinkInterval(null);
     }
-    const growInt = setInterval(growAction, 10);
-    setGrowInterval(growInt);
-  }
-
-  function shrink() {
-    if (growInterval) {
-      clearInterval(growInterval);
-      setGrowInterval(null);
+    
+    if (!growInterval) {
+      const growInt = setInterval(growAction, GROW_INTERVAL_MS);
+      setGrowInterval(growInt);
     }
-    const shrinkInt = setInterval(shrinkAction, 20);
-    setShrinkInterval(shrinkInt);
-  }
-
-  function startMove() {
-    shrink();
-    startNewTimeout();
-  }
-
-  function startNewTimeout() {
-    const moveCountdown = setTimeout(moveStopped, 100);
-    setMoveTimeout(moveCountdown);
-  }
-
-  function restartMoveTimeout() {
-    if (moveTimeout) {
-      clearTimeout(moveTimeout);
-    }
-    startNewTimeout();
   }
 
   // Event handlers
-  function handleMouseMove(e: React.MouseEvent): void {
-    setViewCx(e.clientX);
-    setViewCy(e.clientY);
-
-    if (!moveTimeout) {
-      if (isInitialMouseMove) {
-        setHideCircle(false);
-        setIsInitialMouseMove(false);
-      }
-      startMove();
-    } else {
-      restartMoveTimeout();
-    }
-  }
-
-  function getMaskValue() {
-    return hideCircle ? undefined : "url(#circle-mask)";
-  }
-
-  // Init
-  function initialSetup() {
-    const width = window.innerWidth;
-    const height = window.innerHeight;
-    setWinWidth(width);
-    setWinHeight(height);
+  function handleMouseMove(coords: Coordinates): void {
+    setViewCx(coords.clientX);
+    setViewCy(coords.clientY);
   }
 
   return (
-    <div className={styles.flashlight} onMouseMove={handleMouseMove}>
+    <div className={styles.flashlight}>
       <svg width={winWidth} height={winHeight} xmlns="http://www.w3.org/2000/svg">
         {/* Define a mask */}
         <mask id="circle-mask">
@@ -139,7 +139,7 @@ export default function Flashlight() {
           width={winWidth}
           height={winHeight}
           fill="black"
-          mask={getMaskValue()}
+          mask="url(#circle-mask)"
         />
       </svg>
     </div>

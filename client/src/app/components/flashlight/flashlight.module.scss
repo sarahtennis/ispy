@@ -1,14 +1,7 @@
 @use "@globals" as *;
 
 .flashlight {
-  background: rgb(174, 243, 251);
-  background: radial-gradient(
-    circle,
-    rgba(174, 243, 251, 1) 0%,
-    rgba(0, 229, 255, 1) 33%,
-    rgba(0, 151, 167, 1) 67%,
-    rgba(0, 96, 100, 1) 100%
-  );
+  background: transparent;
   position: fixed;
   top: 0;
   left: 0;
