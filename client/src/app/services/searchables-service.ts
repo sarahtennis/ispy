@@ -19,13 +19,11 @@ export class SearchablesService {
     const target = new Path2D();
     target.rect(10, 10, 30, 30);
 
-    const path = {
-      fill: target
+    const paths = {
+      fill: target,
     };
 
-    CanvasService.addToCanvas({
-      fill: target
-    });
-    SearchablesService.instance.displayedSearchables.push(path);
+    CanvasService.addToCanvas(paths);
+    SearchablesService.instance.displayedSearchables.push(paths);
   }
 }
