@@ -37,6 +37,10 @@ export class WindowService {
     return WindowService.instance.windowDimensions$.asObservable();
   }
 
+  public static getDimensions() {
+    return WindowService.instance.windowDimensions$.value;
+  }
+
   private onWindowResizeEmit(resizeEv: Event) {
     if (WindowService.instance.timeout) {
       clearTimeout(WindowService.instance.timeout);
