@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from "react";
 import styles from "./flashlight.module.scss";
 import { Coordinates, MouseMoveService } from "@/services/mouse-move-service";
+import { Dimensions, WindowService } from "@/services/window-service";
 
 const MOVED_STOPPED_TIMEOUT_MS = 100;
 const SHRINK_INTERVAL_MS = 20;
@@ -21,11 +22,11 @@ export default function Flashlight() {
   const [winHeight, setWinHeight] = useState(0);
 
   useEffect(() => {
-    initialSetup();
     subscribeToObservables();
     // return teardown;
   }, []);
 
+  // Mouse moves circle centered on mouse
   useEffect(() => {
     if (!moveTimeout) {
       startMove();
@@ -34,15 +35,17 @@ export default function Flashlight() {
     }
   }, [viewCx, viewCy]);
 
-  // Init
-  function initialSetup() {
-    setWinWidth(window.innerWidth);
-    setWinHeight(window.innerHeight);
-  }
+  // Window dimensions have changed
+  useEffect(() => {}, [winWidth, winHeight]);
 
   function subscribeToObservables() {
     MouseMoveService.instance.getMouseMoveObservable().subscribe((coords: Coordinates) => {
       handleMouseMove(coords);
+    });
+
+    WindowService.getWindowResizeObservable().subscribe((dimensions: Dimensions) => {
+      setWinWidth(dimensions.width);
+      setWinHeight(dimensions.height);
     });
   }
 
@@ -111,7 +114,7 @@ export default function Flashlight() {
       clearInterval(shrinkInterval);
       setShrinkInterval(null);
     }
-    
+
     if (!growInterval) {
       const growInt = setInterval(growAction, GROW_INTERVAL_MS);
       setGrowInterval(growInt);
