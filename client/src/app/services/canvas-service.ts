@@ -1,4 +1,4 @@
-import { SearchablePaths } from "./searchables-service";
+import { SvgService } from "./svg-service";
 
 export class CanvasService {
   private static _instance: CanvasService;
@@ -14,22 +14,48 @@ export class CanvasService {
     CanvasService.instance.canvasElement = el;
   }
 
-  public static addToCanvas(paths: SearchablePaths) {
+  public static async test() {
     const context = CanvasService.getCanvasContext();
     if (!context) return;
 
-    if (paths.fill) {
-      context.fill(paths.fill);
-    }
-    if (paths.stroke) {
-      context.stroke(paths.stroke);
-    }
+    await SvgService.loadScenarioSvgs([
+      {
+        categoryName: "fruit",
+        svgNames: ["apple"],
+      },
+    ]);
+
+    const appleDefinition = SvgService.getSvgPathDefinitions('fruit', 'apple');
+
+    context.save();
+
+    appleDefinition?.forEach(path => {
+      const drawPath = new Path2D(path.d);
+      context.save();
+      if (path.color) {
+        context.fillStyle = path.color;
+      }
+      // test - red, 2x size, moved 200,200
+      if (true) {
+        context.fillStyle = 'red';
+        context.translate(200, 200);
+        context.scale(2, 2);
+      }
+
+      if (path.fillRule) {
+        context.fill(drawPath, <CanvasFillRule>path.fillRule);
+      } else {
+        context.fill(drawPath);
+      }
+    });
+
+    context.restore();
   }
 
   private static getCanvasContext(): CanvasRenderingContext2D | null {
     const el = CanvasService.instance.canvasElement;
     if (el?.getContext) {
-      return el.getContext('2d');
+      return el.getContext("2d");
     }
     return null;
   }

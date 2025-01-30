@@ -5,7 +5,6 @@ import styles from "./search-canvas.module.scss";
 
 import { WindowService, Dimensions } from "@/services/window-service";
 import { CanvasService } from "@/services/canvas-service";
-import { SearchablesService } from "@/services/searchables-service";
 
 const CANVAS_ID = "search-canvas";
 const CANVAS_CLASS = "search-canvas";
@@ -30,7 +29,7 @@ export default function SearchCanvas() {
     if (canvasRef.current) {
       CanvasService.setCanvasElement(canvasRef.current);
       // For testing shape drawing
-      SearchablesService.createSearchable();
+      CanvasService.test();
     } else {
       // BAD
     }
