@@ -1,9 +1,17 @@
 {
   "load": {
-    "fruit": ["apple", "banana"]
+    "fruit": ["apple", "banana", "pear"]
   },
   "findables": {
     "fruit": {
+      "pear": {
+        "defaultSize": 50,
+        "sizes": {
+          "200": {
+            "olive": 3
+          }
+        }
+      },
       "banana": {
         "defaultSize": 512,
         "sizes": {
@@ -11,7 +19,7 @@
             "yellow": 20,
             "brown": 1
           },
-          "500": {
+          "200": {
             "yellow": 2,
             "gold": 2
           }

@@ -22,9 +22,11 @@ interface CreateFindablesOptions {
 
 export interface Findable {
   id: number;
-  path: Path2D;
+  d: string;
+  targetFillPath: Path2D;
   color?: string;
   fillRule?: CanvasFillRule;
+  size: number;
   transformation: {
     translate: {
       x: number;
@@ -75,9 +77,10 @@ export class FindablesService {
         for (let count = sizeColors[color]; count >= 0; count--) {
           pathDefs.forEach((path) => {
             const translation = FindablesService.generateRandomTranslation(sizeNum);
-            const findable: Findable = {
+            const findable: Partial<Findable> = {
               id: FindablesService.instance.idIncrementer++,
-              path: new Path2D(path.d),
+              d: path.d,
+              size: sizeNum,
               transformation: {
                 translate: translation,
                 scale: {
@@ -98,9 +101,14 @@ export class FindablesService {
     });
   }
 
-  private static addFindableToCanvas(findable: Findable) {
-    FindablesService.instance.visibleFindables.push(findable);
-    CanvasService.drawFindable(findable);
+  private static addFindableToCanvas(findable: Partial<Findable>) {
+    const targetPath = CanvasService.drawFindable(<Findable>findable);
+    if (!targetPath) {
+      return;
+    }
+    const add = {...findable};
+    add.targetFillPath = targetPath;
+    FindablesService.instance.visibleFindables.push(<Findable>add);
   }
 
   // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/random#getting_a_random_integer_between_two_values_inclusive
