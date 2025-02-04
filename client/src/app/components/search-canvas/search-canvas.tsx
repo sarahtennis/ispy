@@ -5,6 +5,7 @@ import styles from "./search-canvas.module.scss";
 
 import { WindowService, Dimensions } from "@/services/window-service";
 import { CanvasService } from "@/services/canvas-service";
+import { ScenarioService } from "@/services/scenario-service";
 
 const CANVAS_ID = "search-canvas";
 const CANVAS_CLASS = "search-canvas";
@@ -21,18 +22,17 @@ export default function SearchCanvas() {
   // Window dimensions have changed
   useEffect(() => {}, [winWidth, winHeight]);
 
-  function initialSetup() {
+  async function initialSetup() {
     WindowService.getWindowResizeObservable().subscribe((dimensions: Dimensions) => {
       setWinWidth(dimensions.width);
       setWinHeight(dimensions.height);
     });
     if (canvasRef.current) {
       CanvasService.setCanvasElement(canvasRef.current);
-      // For testing shape drawing
-      CanvasService.test();
     } else {
       // BAD
     }
+    await ScenarioService.loadScenario('fruit');
   }
 
   return (

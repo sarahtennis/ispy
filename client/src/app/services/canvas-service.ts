@@ -1,4 +1,4 @@
-import { SvgService } from "./svg-service";
+import { Findable } from "./findables-service";
 
 export class CanvasService {
   private static _instance: CanvasService;
@@ -14,40 +14,31 @@ export class CanvasService {
     CanvasService.instance.canvasElement = el;
   }
 
-  public static async test() {
+  public static drawFindable(findable: Findable) {
     const context = CanvasService.getCanvasContext();
     if (!context) return;
 
-    await SvgService.loadScenarioSvgs([
-      {
-        categoryName: "fruit",
-        svgNames: ["apple"],
-      },
-    ]);
-
-    const appleDefinition = SvgService.getSvgPathDefinitions('fruit', 'apple');
-
     context.save();
 
-    appleDefinition?.forEach(path => {
-      const drawPath = new Path2D(path.d);
-      context.save();
-      if (path.color) {
-        context.fillStyle = path.color;
-      }
-      // test - red, 2x size, moved 200,200
-      if (true) {
-        context.fillStyle = 'red';
-        context.translate(200, 200);
-        context.scale(2, 2);
-      }
+    if (findable.color) {
+      context.fillStyle = findable.color;
+    }
 
-      if (path.fillRule) {
-        context.fill(drawPath, <CanvasFillRule>path.fillRule);
-      } else {
-        context.fill(drawPath);
-      }
-    });
+    const translate = findable.transformation.translate;
+    context.translate(translate.x, translate.y);
+
+    const scale = findable.transformation.scale;
+    context.scale(scale.x, scale.y);
+
+    if (findable.transformation.rotate) {
+      context.rotate(findable.transformation.rotate);
+    }
+
+    if (findable.fillRule) {
+      context.fill(findable.path, findable.fillRule);
+    } else {
+      context.fill(findable.path);
+    }
 
     context.restore();
   }

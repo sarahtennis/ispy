@@ -8,10 +8,10 @@ interface SvgDefinition {
   [image: string]: PathDefinition[];
 }
 
-interface PathDefinition {
+export interface PathDefinition {
   d: string;
   color?: string;
-  fillRule?: string;
+  fillRule?: CanvasFillRule;
 }
 
 export interface CategoryDefinition {
@@ -30,14 +30,15 @@ export class SvgService {
   }
 
   public static async loadScenarioSvgs(
-    categories: { categoryName: string; svgNames: string[]; }[]
+    categories: { [categoryName: string] : string[]; }
   ) {
-    for (let category of categories) {
-      const categoryPath = IMAGE_BASE_PATH + category.categoryName;
-      for (let svgName of category.svgNames) {
+    for (let categoryNameKey of Object.keys(categories)) {
+      const imageNames = categories[categoryNameKey];
+      const categoryPath = IMAGE_BASE_PATH + categoryNameKey;
+      for (let svgName of imageNames) {
         if (
-          !SvgService.instance.svgDefinitionStore[category.categoryName] ||
-          !SvgService.instance.svgDefinitionStore[category.categoryName][
+          !SvgService.instance.svgDefinitionStore[categoryNameKey] ||
+          !SvgService.instance.svgDefinitionStore[categoryNameKey][
             svgName
           ]
         ) {
@@ -50,7 +51,7 @@ export class SvgService {
           paths.forEach((path) => {
             const d = path.getAttribute("d");
             const color = path.getAttribute("fill");
-            const fillRule = path.getAttribute("fill-rule");
+            const fillRule = <CanvasFillRule>path.getAttribute("fill-rule");
             if (d) {
               const pathDef: PathDefinition = { d };
               if (color) {
@@ -63,7 +64,7 @@ export class SvgService {
             }
           });
           SvgService.addSvgDefinitionToStore({
-            category: category.categoryName,
+            category: categoryNameKey,
             image: svgName,
             paths: imagePaths,
           });
