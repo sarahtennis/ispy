@@ -1,0 +1,47 @@
+{
+  "load": {
+    "fruit": ["apple", "banana", "pear"]
+  },
+  "findables": {
+    "fruit": {
+      "pear": {
+        "defaultSize": 50,
+        "sizes": {
+          "200": {
+            "olive": 3
+          }
+        }
+      },
+      "banana": {
+        "defaultSize": 512,
+        "sizes": {
+          "100": {
+            "yellow": 20,
+            "brown": 1
+          },
+          "200": {
+            "yellow": 2,
+            "gold": 2
+          }
+        }
+      },
+      "apple": {
+        "defaultSize": 50,
+        "sizes": {
+          "50": {
+            "red": 20,
+            "limegreen": 20
+          },
+          "100": {
+            "red": 5,
+            "limegreen": 5
+          },
+          "200": {
+            "red": 1,
+            "limegreen": 1
+          }
+        }
+      }
+    }
+  }
+}
