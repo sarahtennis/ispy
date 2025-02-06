@@ -32,10 +32,10 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-      - name: Publish
-          shell: bash
-          run: |
-            echo "GITHUB_WORKSPACE=$GITHUB_WORKSPACE" >> $GITHUB_ENV
+      - name: Set workpace in env
+        shell: bash
+        run: |
+          echo "GITHUB_WORKSPACE=$GITHUB_WORKSPACE" >> $GITHUB_ENV
       - name: Detect package manager
         id: detect-package-manager
         run: |
