@@ -32,19 +32,15 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-      - name: Set workpace in env
-        shell: bash
-        run: |
-          echo "GITHUB_WORKSPACE=$GITHUB_WORKSPACE" >> $GITHUB_ENV
       - name: Detect package manager
         id: detect-package-manager
         run: |
-          if [ -f "${{ env.GITHUB_WORKSPACE }}/yarn.lock" ]; then
+          if [ -f "${{ runner.workspace }}/yarn.lock" ]; then
             echo "manager=yarn" >> $GITHUB_OUTPUT
             echo "command=install" >> $GITHUB_OUTPUT
             echo "runner=yarn" >> $GITHUB_OUTPUT
             exit 0
-          elif [ -f "${{ env.GITHUB_WORKSPACE }}/package.json" ]; then
+          elif [ -f "${{ runner.workspace }}/package.json" ]; then
             echo "manager=npm" >> $GITHUB_OUTPUT
             echo "command=ci" >> $GITHUB_OUTPUT
             echo "runner=npx --no-install" >> $GITHUB_OUTPUT
