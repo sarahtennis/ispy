@@ -35,8 +35,8 @@ jobs:
       - name: Detect package manager
         id: detect-package-manager
         run: |
-          ls ${{ github.workspace }}
-          if [ -f "${{ github.workspace }}/yarn.lock" ]; then
+          ls ${{ github.workspace }}/ispy
+          if [ -f "${{ github.workspace }}/ispy/yarn.lock" ]; then
             echo "manager=yarn" >> $GITHUB_OUTPUT
             echo "command=install" >> $GITHUB_OUTPUT
             echo "runner=yarn" >> $GITHUB_OUTPUT
