@@ -22,44 +22,20 @@ export default function Flashlight() {
   const [winHeight, setWinHeight] = useState(0);
 
   useEffect(() => {
-    subscribeToObservables();
-    // return teardown;
-  }, []);
-
-  // Mouse moves circle centered on mouse
-  useEffect(() => {
-    if (!moveTimeout) {
-      startMove();
-    } else {
-      restartMoveTimeout();
-    }
-  }, [viewCx, viewCy]);
-
-  // Window dimensions have changed
-  useEffect(() => {}, [winWidth, winHeight]);
-
-  function subscribeToObservables() {
+    // Setup
     MouseMoveService.instance.getMouseMoveObservable().subscribe((coords: Coordinates) => {
       handleMouseMove(coords);
     });
-
+  
     WindowService.getWindowResizeObservable().subscribe((dimensions: Dimensions) => {
       setWinWidth(dimensions.width);
       setWinHeight(dimensions.height);
     });
-  }
+    // return teardown;
+  }, []);
 
-  function startMove() {
-    shrink();
-    startNewTimeout();
-  }
-
-  function restartMoveTimeout() {
-    if (moveTimeout) {
-      clearTimeout(moveTimeout);
-    }
-    startNewTimeout();
-  }
+  // Window dimensions have changed
+  useEffect(() => { }, [winWidth, winHeight]);
 
   function shrink() {
     if (growInterval) {
@@ -121,10 +97,33 @@ export default function Flashlight() {
     }
   }
 
+  function getMoveTimeout() {
+    return moveTimeout;
+  }
+
+  function startMove() {
+    shrink();
+    startNewTimeout();
+  }
+
+  function restartMoveTimeout() {
+    const moveTime = getMoveTimeout();
+    if (moveTime) {
+      clearTimeout(moveTime);
+    }
+    startNewTimeout();
+  }
+
   // Event handlers
-  function handleMouseMove(coords: Coordinates): void {
+  const handleMouseMove = (coords: Coordinates): void => {
     setViewCx(coords.clientX);
     setViewCy(coords.clientY);
+
+    if (getMoveTimeout()) {
+      startMove();
+    } else {
+      restartMoveTimeout();
+    }
   }
 
   return (

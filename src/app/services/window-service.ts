@@ -1,4 +1,4 @@
-import { BehaviorSubject, Observable } from "rxjs";
+import { BehaviorSubject } from "rxjs";
 
 const WINDOW_RESIZE_EVENT_TYPE = "resize";
 const RESIZE_DEBOUNCE_MS: number = 100;
@@ -10,7 +10,7 @@ export interface Dimensions {
 
 export class WindowService {
   private static _instance: WindowService;
-  private windowDimensions$ = new BehaviorSubject<Dimensions>({width: window.innerWidth, height: window.innerHeight});
+  private windowDimensions$ = new BehaviorSubject<Dimensions>({width: 0, height: 0});
   private timeout: NodeJS.Timeout | null = null;
 
   private constructor() {}
@@ -22,14 +22,15 @@ export class WindowService {
   public static registerListeners() {
     window.addEventListener(
       WINDOW_RESIZE_EVENT_TYPE,
-      WindowService.instance.onWindowResizeEmit
+      WindowService.onWindowResizeEmit
     );
+    WindowService.setWindowDimensions(window.innerWidth, window.innerHeight);
   }
 
   public static removeListeners() {
     window.removeEventListener(
       WINDOW_RESIZE_EVENT_TYPE,
-      WindowService.instance.onWindowResizeEmit
+      WindowService.onWindowResizeEmit
     );
   }
 
@@ -41,20 +42,20 @@ export class WindowService {
     return WindowService.instance.windowDimensions$.value;
   }
 
-  private onWindowResizeEmit(resizeEv: Event) {
+  private static onWindowResizeEmit() {
     if (WindowService.instance.timeout) {
       clearTimeout(WindowService.instance.timeout);
     }
     WindowService.instance.timeout = setTimeout(() => {
-      WindowService.instance.onResizeFinish(resizeEv);
+      WindowService.onResizeFinish();
     }, RESIZE_DEBOUNCE_MS);
   }
 
-  private onResizeFinish(ev: Event) {
-    WindowService.instance.setWindowDimensions(window.innerWidth, window.innerHeight);
+  private static onResizeFinish() {
+    WindowService.setWindowDimensions(window.innerWidth, window.innerHeight);
   }
 
-  private setWindowDimensions(width: number, height: number) {
+  private static setWindowDimensions(width: number, height: number) {
     WindowService.instance.windowDimensions$.next({width, height});
   }
 
