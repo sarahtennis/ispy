@@ -11,8 +11,12 @@ import { WindowService } from "./services/window-service";
 
 export default function Home() {
   useEffect(() => {
-    WindowService.registerListeners();
-    MouseMoveService.registerListeners();
+    const registerListeners = () => {
+      WindowService.registerListeners();
+      MouseMoveService.registerListeners();
+    };
+
+    registerListeners();
 
     return () => {
       WindowService.removeListeners();
