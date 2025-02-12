@@ -14,7 +14,7 @@ export class ScenarioService {
 
   public static async loadScenario(scenario: string) {
     try {
-      const scenarioFile = await fetch(`${SCENARIOS_BASE_PATH}${scenario}.json`);
+      const scenarioFile = await fetch(`./${SCENARIOS_BASE_PATH}${scenario}.json`);
       const scenarioDefinition = await scenarioFile.json();
       await SvgService.loadScenarioSvgs({
         ...scenarioDefinition.load

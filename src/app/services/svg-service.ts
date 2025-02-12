@@ -1,4 +1,4 @@
-const IMAGE_BASE_PATH = "/searchables-assets/";
+const IMAGE_BASE_PATH = "./searchables-assets/";
 
 interface SvgDefinitionStore {
   [category: string]: SvgDefinition;
