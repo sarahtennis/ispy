@@ -32,10 +32,10 @@ export class SvgService {
   public static async loadScenarioSvgs(
     categories: { [categoryName: string] : string[]; }
   ) {
-    for (let categoryNameKey of Object.keys(categories)) {
+    for (const categoryNameKey of Object.keys(categories)) {
       const imageNames = categories[categoryNameKey];
       const categoryPath = IMAGE_BASE_PATH + categoryNameKey;
-      for (let svgName of imageNames) {
+      for (const svgName of imageNames) {
         if (
           !SvgService.instance.svgDefinitionStore[categoryNameKey] ||
           !SvgService.instance.svgDefinitionStore[categoryNameKey][
