@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import styles from "./flashlight.module.scss";
 import { Coordinates, MouseMoveService } from "@/services/mouse-move-service";
 import { Dimensions, WindowService } from "@/services/window-service";
@@ -12,54 +12,60 @@ const CIRCLE_MAX_RADIUS = 150;
 const CIRCLE_MIN_RADIUS = 125;
 
 export default function Flashlight() {
-  const [moveTimeout, setMoveTimeout] = useState<NodeJS.Timeout | null>(null);
-  const [shrinkInterval, setShrinkInterval] = useState<NodeJS.Timeout | null>(null);
-  const [growInterval, setGrowInterval] = useState<NodeJS.Timeout | null>(null);
+  const moveTimeout = useRef<NodeJS.Timeout | null>(null);
+  const shrinkInterval = useRef<NodeJS.Timeout | null>(null);
+  const growInterval = useRef<NodeJS.Timeout | null>(null);
   const [circleRadius, setCircleRadius] = useState(CIRCLE_MAX_RADIUS);
-  const [viewCx, setViewCx] = useState(0);
-  const [viewCy, setViewCy] = useState(0);
-  const [winWidth, setWinWidth] = useState(0);
-  const [winHeight, setWinHeight] = useState(0);
+  const [circleCenter, setCircleCenter] = useState({ cx: 0, cy: 0 });
+  const [windowDimensions, setWindowDimensions] = useState({ width: 0, height: 0 });
+
+  const subscribeToObservables = useRef((coords: Coordinates) => {
+    setCircleCenter({
+      cx: coords.clientX,
+      cy: coords.clientY
+    });
+    if (!moveTimeout.current) {
+      startMove();
+    } else {
+      restartMoveTimeout();
+    }
+  });
 
   useEffect(() => {
     // Setup
-    MouseMoveService.instance.getMouseMoveObservable().subscribe((coords: Coordinates) => {
-      handleMouseMove(coords);
+    MouseMoveService.getMouseMoveObservable().subscribe((coords: Coordinates) => {
+      subscribeToObservables.current(coords);
     });
-  
+
     WindowService.getWindowResizeObservable().subscribe((dimensions: Dimensions) => {
-      setWinWidth(dimensions.width);
-      setWinHeight(dimensions.height);
+      setWindowDimensions({ width: dimensions.width, height: dimensions.height });
     });
     // return teardown;
   }, []);
 
-  // Window dimensions have changed
-  useEffect(() => { }, [winWidth, winHeight]);
-
   function shrink() {
-    if (growInterval) {
-      clearInterval(growInterval);
-      setGrowInterval(null);
+    if (growInterval.current) {
+      clearInterval(growInterval.current);
+      growInterval.current = null;
     }
 
-    if (!shrinkInterval) {
+    if (!shrinkInterval.current) {
       const shrinkInt = setInterval(shrinkAction, SHRINK_INTERVAL_MS);
-      setShrinkInterval(shrinkInt);
+      shrinkInterval.current = shrinkInt;
     }
   }
 
   function startNewTimeout() {
     const moveCountdown = setTimeout(moveStopped, MOVED_STOPPED_TIMEOUT_MS);
-    setMoveTimeout(moveCountdown);
+    moveTimeout.current = moveCountdown;
   }
 
   function shrinkAction() {
     setCircleRadius(radius => {
       if (radius <= CIRCLE_MIN_RADIUS) {
-        if (shrinkInterval) {
-          clearInterval(shrinkInterval);
-          setShrinkInterval(null);
+        if (shrinkInterval.current) {
+          clearInterval(shrinkInterval.current);
+          shrinkInterval.current = null;
         }
         return CIRCLE_MIN_RADIUS;
       }
@@ -70,9 +76,9 @@ export default function Flashlight() {
   function growAction() {
     setCircleRadius(radius => {
       if (radius >= CIRCLE_MAX_RADIUS) {
-        if (growInterval) {
-          clearInterval(growInterval);
-          setGrowInterval(null);
+        if (growInterval.current) {
+          clearInterval(growInterval.current);
+          growInterval.current = null;
         }
         return CIRCLE_MAX_RADIUS;
       }
@@ -81,24 +87,20 @@ export default function Flashlight() {
   }
 
   function moveStopped() {
-    setMoveTimeout(null);
+    moveTimeout.current = null;
     grow();
   }
 
   function grow() {
-    if (shrinkInterval) {
-      clearInterval(shrinkInterval);
-      setShrinkInterval(null);
+    if (shrinkInterval.current) {
+      clearInterval(shrinkInterval.current);
+      shrinkInterval.current = null;
     }
 
-    if (!growInterval) {
+    if (!growInterval.current) {
       const growInt = setInterval(growAction, GROW_INTERVAL_MS);
-      setGrowInterval(growInt);
+      growInterval.current = growInt;
     }
-  }
-
-  function getMoveTimeout() {
-    return moveTimeout;
   }
 
   function startMove() {
@@ -107,39 +109,26 @@ export default function Flashlight() {
   }
 
   function restartMoveTimeout() {
-    const moveTime = getMoveTimeout();
-    if (moveTime) {
-      clearTimeout(moveTime);
+    if (moveTimeout.current) {
+      clearTimeout(moveTimeout.current);
     }
     startNewTimeout();
   }
 
-  // Event handlers
-  const handleMouseMove = (coords: Coordinates): void => {
-    setViewCx(coords.clientX);
-    setViewCy(coords.clientY);
-
-    if (getMoveTimeout()) {
-      startMove();
-    } else {
-      restartMoveTimeout();
-    }
-  }
-
   return (
     <div className={styles.flashlight}>
-      <svg width={winWidth} height={winHeight} xmlns="http://www.w3.org/2000/svg">
+      <svg width={windowDimensions.width} height={windowDimensions.height} xmlns="http://www.w3.org/2000/svg">
         {/* Define a mask */}
         <mask id="circle-mask">
           {/* White area is visible; black area is cut out */}
-          <rect width={winWidth} height={winHeight} fill="white" />
-          <circle cx={viewCx} cy={viewCy} r={circleRadius} fill="black" />
+          <rect width={windowDimensions.width} height={windowDimensions.height} fill="white" />
+          <circle cx={circleCenter.cx} cy={circleCenter.cy} r={circleRadius} fill="black" />
         </mask>
 
         {/* Apply the mask to a black square */}
         <rect
-          width={winWidth}
-          height={winHeight}
+          width={windowDimensions.width}
+          height={windowDimensions.height}
           fill="black"
           mask="url(#circle-mask)"
         />

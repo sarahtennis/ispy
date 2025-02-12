@@ -33,7 +33,7 @@ export class MouseMoveService {
     });
   }
 
-  public getMouseMoveObservable(): Observable<Coordinates> {
+  public static getMouseMoveObservable(): Observable<Coordinates> {
     return MouseMoveService.instance.mouseMove$.asObservable();
   }
 
