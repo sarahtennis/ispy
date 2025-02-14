@@ -4,7 +4,7 @@ You can follow its progress [here](https://sarah.tennis/ispy/).
 
 ## Definitions
 ### Scenario
-A scenario is a JSON that defines which SVGs to fetch and load into SvgService and the properties of those images when drawing to the scene. There is currently no positioning logic in the scenario. An example scenario can be seen [here](https://github.com/sarahtennis/ispy/blob/main/public/scenarios/fruit.json). The structure of the scenario JSON is:
+A scenario defines which SVGs to fetch and load into SvgService and the properties of those images when drawing to the scene, in JSON format. There is currently no positioning logic in the scenario. An example scenario can be seen [here](https://github.com/sarahtennis/ispy/blob/main/public/scenarios/fruit.json). The structure of the scenario is:
   ```js
   {
     // Defines SVG image assets to load into SvgService
