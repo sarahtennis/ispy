@@ -1,37 +1,28 @@
 "use client";
+import AppFooter from "@/components/app-footer/app-footer";
+import AppHeader from "@/components/app-header/app-header";
+import { 
+  NavigationService,
+  Routes,
+} from "@/services/navigation-service";
+import styles from "@/page.module.scss";
+import '@globals';
 
-import { useEffect } from "react";
+export default function HomePage() {
+  function onPlayButtonClick() {
+    NavigationService.setRedirect(false);
+    NavigationService.navigateToRoute(Routes.PLAY);
+  }
 
-import styles from "./page.module.scss";
-import Flashlight from "./components/flashlight/flashlight";
-import SearchCanvas from "./components/search-canvas/search-canvas";
-
-import { MouseMoveService } from "./services/mouse-move-service";
-import { WindowService } from "./services/window-service";
-
-export default function Home() {
-  useEffect(() => {
-    const registerListeners = () => {
-      WindowService.registerListeners();
-      MouseMoveService.registerListeners();
-    };
-
-    registerListeners();
-
-    return () => {
-      WindowService.removeListeners();
-      MouseMoveService.removeListeners();
-    };
-  }, []);
-  
   return (
-    <div className={styles.page}>
-      <main className={styles.main}>
-        <Flashlight></Flashlight>
-        <SearchCanvas></SearchCanvas>
+    <div className="body-content">
+      <AppHeader></AppHeader>
+      <main>
+        <button type="button" onClick={onPlayButtonClick}>
+          Play
+        </button>
       </main>
-      <footer className={styles.footer}>
-      </footer>
+      <AppFooter></AppFooter>
     </div>
   );
 }

@@ -1,1 +1,19 @@
 @forward 'variables';
+
+body {
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+
+  & > *.body-content {
+    display: flex;
+    flex-direction: column;
+    justify-content: stretch;
+    height: 100vh;
+    width: 100vw;
+  }
+
+  main {
+    height: 100%;
+  }
+}
