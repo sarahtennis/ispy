@@ -1,5 +1,5 @@
 import { CanvasService } from "./canvas-service";
-import { SvgService } from "./svg-service";
+import { PathDefinition, SvgService } from "./svg-service";
 import { WindowService } from "./window-service";
 
 type Count = number;
@@ -23,9 +23,10 @@ interface CreateFindablesOptions {
 export interface Findable {
   id: number;
   d: string;
+  pathDefinitions: PathDefinition[];
   targetFillPath: Path2D;
+  // Overwrite default color?
   color?: string;
-  fillRule?: CanvasFillRule;
   size: number;
   transformation: {
     translate: {
@@ -63,39 +64,39 @@ export class FindablesService {
         });
       });
     });
+    // Testing
+    CanvasService.drawBackground();
   }
 
   private static generateFindablesForImage(options: {category: string, image: string, defaultSize: number, sizes: Sizes}) {
     const pathDefs = SvgService.getSvgPathDefinitions(options.category, options.image);
     if (!pathDefs) return;
 
+    // For each size
     Object.keys(options.sizes).forEach((size) => {
       const sizeNum = Number(size);
       const sizeColors = options.sizes[size];
+      // For each color of that size
       Object.keys(sizeColors).forEach(color => {
         const canvasScale = sizeNum / options.defaultSize;
         for (let count = sizeColors[color]; count >= 0; count--) {
-          pathDefs.forEach((path) => {
-            const translation = FindablesService.generateRandomTranslation(sizeNum);
-            const findable: Partial<Findable> = {
-              id: FindablesService.instance.idIncrementer++,
-              d: path.d,
-              size: sizeNum,
-              transformation: {
-                translate: translation,
-                scale: {
-                  x: canvasScale,
-                  y: canvasScale,
-                },
-                rotate: FindablesService.generateRandomRotation(-10, 10)
-              }
-            };
-            findable.color = color;
-            if (path.fillRule) {
-              findable.fillRule = path.fillRule;
+          // Findable for instance in size/color count
+          const translation = FindablesService.generateRandomTranslation(sizeNum);
+          const findable: Partial<Findable> = {
+            id: FindablesService.instance.idIncrementer++,
+            pathDefinitions: pathDefs,
+            color,
+            size: sizeNum,
+            transformation: {
+              translate: translation,
+              scale: {
+                x: canvasScale,
+                y: canvasScale,
+              },
+              rotate: FindablesService.generateRandomRotation(-10, 10)
             }
-            FindablesService.addFindableToCanvas(findable);
-          });
+          }
+          FindablesService.addFindableToCanvas(findable);
         }
       });
     });

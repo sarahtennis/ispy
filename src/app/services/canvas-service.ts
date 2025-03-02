@@ -1,8 +1,10 @@
 import { Findable } from "./findables-service";
+import { WindowService } from "./window-service";
 
 export class CanvasService {
   private static _instance: CanvasService;
   private canvasElement: HTMLCanvasElement | null = null;
+  private backgroundCanvasElement: HTMLCanvasElement | null = null;
 
   private constructor() {}
 
@@ -12,6 +14,35 @@ export class CanvasService {
 
   public static setCanvasElement(el: HTMLCanvasElement) {
     CanvasService.instance.canvasElement = el;
+  }
+
+  public static setBackgroundCanvasElement(el: HTMLCanvasElement) {
+    CanvasService.instance.backgroundCanvasElement = el;
+  }
+
+  public static drawBackground() {
+    const context = CanvasService.getBackgroundCanvasContext();
+    if (context) {
+      const { height, width } = WindowService.getDimensions();
+      const bgImage = new Image();
+      bgImage.onload = (ev: Event) => {
+        const heightScale = height / bgImage.height;
+        const coversWidthAtHeightScale = (bgImage.width * heightScale) >= width;
+        if (coversWidthAtHeightScale) {
+          context.save();
+          context.scale(heightScale, heightScale);
+          context.drawImage(bgImage, 0, 0);
+          context.restore();
+        } else {
+          const widthScaleToFull = width / (bgImage.width * heightScale);
+          context.save();
+          context.scale(widthScaleToFull, widthScaleToFull);
+          context.drawImage(bgImage, 0, 0);
+          context.restore();
+        }
+      };
+      bgImage.src = "./backgrounds/cottage.svg";
+    }
   }
 
   public static drawFindable(findable: Findable) {
@@ -27,40 +58,50 @@ export class CanvasService {
     context.scale(scale.x, scale.y);
 
     if (findable.transformation.rotate) {
-      context.rotate(findable.transformation.rotate * Math.PI / 180);
+      context.rotate((findable.transformation.rotate * Math.PI) / 180);
     }
 
-    const separated = CanvasService.separatePaths(findable.d);
-    if (!separated) {
-      // Incorrect path format
-      return null;
-    }
+    context.lineWidth = 3 / scale.x;
+    context.strokeStyle = "#000";
 
-    const { outerPath, innerPaths } = separated;
-    context.lineWidth = 3 / scale.x
-    context.strokeStyle = '#000';
-    context.stroke(outerPath);
-
-    if (findable.color) {
-      context.fillStyle = findable.color;
-    }
-
-    if (findable.fillRule) {
-      context.fill(new Path2D(findable.d), findable.fillRule);
+    if (findable.pathDefinitions.length === 1) {
+      const def = findable.pathDefinitions[0];
+      if (def.fillRule !== "evenodd") {
+        const path = new Path2D(def.d);
+        context.stroke(path);
+        if (def.color) {
+          context.fillStyle = def.color;
+        }
+        context.fill(path);
+        context.restore();
+        return path;
+      }
+      const separated = CanvasService.separatePaths(def.d);
+      const { outerPath, innerPaths } = separated;
+      context.stroke(outerPath);
+      context.fillStyle = findable.color || def.color;
+      context.fill(new Path2D(def.d));
+      context.clip(outerPath);
+      context.fillStyle = "#FFF";
+      innerPaths.forEach((path: Path2D) => {
+        context.fill(path);
+      });
+      context.restore();
+      return outerPath;
     } else {
-      context.fill(new Path2D(findable.d));
+      let targetPath: Path2D = new Path2D();
+      // Multi path, currently all nonzero
+      findable.pathDefinitions.forEach((definition) => {
+        if (definition.color) {
+          context.fillStyle = definition.color;
+        }
+        const defPath = new Path2D(definition.d);
+        targetPath.addPath(defPath);
+        context.fill(defPath);
+      });
+      context.restore();
+      return targetPath;
     }
-
-    context.clip(outerPath);
-
-    context.fillStyle = '#FFF';
-    innerPaths.forEach((path: Path2D) => {
-      context.fill(path);
-    });
-
-    context.restore();
-
-    return outerPath;
   }
 
   private static separatePaths(d: string) {
@@ -70,16 +111,24 @@ export class CanvasService {
     // Shouldn't happen, but TODO add alerting because it is
     // an unaccepted svg d format
     if (!subpaths.length) return null;
-    
+
     // Assume the first is outer, others are inner
     const outerPath = new Path2D(subpaths[0]) || null;
-    const innerPaths = subpaths.slice(1).map(p => new Path2D(p));
-    
+    const innerPaths = subpaths.slice(1).map((p) => new Path2D(p));
+
     return { outerPath, innerPaths };
-}
+  }
 
   private static getCanvasContext(): CanvasRenderingContext2D | null {
     const el = CanvasService.instance.canvasElement;
+    if (el?.getContext) {
+      return el.getContext("2d");
+    }
+    return null;
+  }
+
+  private static getBackgroundCanvasContext(): CanvasRenderingContext2D | null {
+    const el = CanvasService.instance.backgroundCanvasElement;
     if (el?.getContext) {
       return el.getContext("2d");
     }
