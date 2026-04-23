@@ -1,37 +1,15 @@
 "use client";
+import AppFooter from "@/components/app-footer/app-footer";
+import AppHeader from "@/components/app-header/app-header";
+import '@globals';
+import HomeMain from "./components/home-main/home-main";
 
-import { useEffect } from "react";
-
-import styles from "./page.module.scss";
-import Flashlight from "./components/flashlight/flashlight";
-import SearchCanvas from "./components/search-canvas/search-canvas";
-
-import { MouseMoveService } from "./services/mouse-move-service";
-import { WindowService } from "./services/window-service";
-
-export default function Home() {
-  useEffect(() => {
-    const registerListeners = () => {
-      WindowService.registerListeners();
-      MouseMoveService.registerListeners();
-    };
-
-    registerListeners();
-
-    return () => {
-      WindowService.removeListeners();
-      MouseMoveService.removeListeners();
-    };
-  }, []);
-  
+export default function HomePage() {
   return (
-    <div className={styles.page}>
-      <main className={styles.main}>
-        <Flashlight></Flashlight>
-        <SearchCanvas></SearchCanvas>
-      </main>
-      <footer className={styles.footer}>
-      </footer>
+    <div className="body-content">
+      <AppHeader></AppHeader>
+      <HomeMain></HomeMain>
+      <AppFooter></AppFooter>
     </div>
   );
 }

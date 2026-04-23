@@ -1,0 +1,20 @@
+@use '@globals' as *;
+
+.main {
+  display: flex;
+  justify-content: flex-end;
+  align-items: stretch;
+}
+
+.content {
+  width: 900px;
+  margin: 90px;
+  background: $honoluluBlue;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  * {
+    padding: 20px;
+  }
+}

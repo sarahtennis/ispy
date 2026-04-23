@@ -1,1 +1,26 @@
 @forward 'variables';
+@use 'variables' as *;
+
+body {
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  background: $bodyBgColor;
+
+  &, *, *:before, *:after {
+    box-sizing: border-box;
+  }
+
+  & > *.body-content {
+    display: flex;
+    flex-direction: column;
+    justify-content: stretch;
+    height: 100vh;
+    width: 100vw;
+  }
+
+  main {
+    height: 100%;
+    width: 100%;
+  }
+}

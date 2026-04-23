@@ -47,26 +47,67 @@ export class SvgService {
           const svgText = await file.text();
           const svgDomElement = SvgService.createSvgElement(svgText);
           const paths = svgDomElement.querySelectorAll("path");
-          const imagePaths: PathDefinition[] = [];
-          paths.forEach((path) => {
+          // Single path SVG
+          if (paths.length === 1) {
+            SvgService.addSvgDefinitionToStore({
+              category: categoryNameKey,
+              image: svgName,
+              paths: [{
+                d: paths[0].getAttribute('d'),
+                color: paths[0].style.fill,
+                fillRule: <CanvasFillRule>paths[0].getAttribute('fill-rule')
+              }],
+            });
+            return;
+          }
+          // Multiple paths in SVG
+          const pathDefs: PathDefinition[] = [];
+          let insertObject: Partial<PathDefinition> = null;
+          paths.forEach((path, index) => {
             const d = path.getAttribute("d");
-            const color = path.getAttribute("fill");
-            const fillRule = <CanvasFillRule>path.getAttribute("fill-rule");
-            if (d) {
-              const pathDef: PathDefinition = { d };
-              if (color) {
-                pathDef.color = color;
+            const color = path.style.fill;
+            // evenodd
+            const isEvenOdd = <CanvasFillRule>path.getAttribute("fill-rule") === 'evenodd';
+            if (isEvenOdd) {
+              insertObject = null;
+              pathDefs.push({
+                d,
+                color,
+                fillRule: 'evenodd',
+              });
+              return;
+            }
+            // First is nonzero or previous was evenodd
+            if (!insertObject) {
+              insertObject = {
+                fillRule: 'nonzero',
+                color,
+                d
+              };
+              if (index >= paths.length - 1) {
+                pathDefs.push(<PathDefinition>insertObject);
               }
-              if (fillRule) {
-                pathDef.fillRule = fillRule;
+            } else {
+              // Check to see if we can combine ds from paths
+              if (color === insertObject.color) {
+                insertObject.d = insertObject.d + ` ${d}`;
+              } else {
+                pathDefs.push(<PathDefinition>insertObject);
+                insertObject = {
+                  fillRule: 'nonzero',
+                  color,
+                  d
+                };
+                if (index >= paths.length - 1) {
+                  pathDefs.push(<PathDefinition>insertObject);
+                }
               }
-              imagePaths.push(pathDef);
             }
           });
           SvgService.addSvgDefinitionToStore({
             category: categoryNameKey,
             image: svgName,
-            paths: imagePaths,
+            paths: pathDefs,
           });
         }
       }

@@ -1,0 +1,18 @@
+{
+  "load": {
+    "fruit": ["banana"]
+  },
+  "findables": {
+    "fruit": {
+      "banana": {
+        "defaultSize": 512,
+        "sizes": {
+          "100": {
+            "yellow": 2,
+            "gold": 2
+          }
+        }
+      }
+    }
+  }
+}

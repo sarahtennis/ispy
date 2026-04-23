@@ -1,5 +1,5 @@
 import { CanvasService } from "./canvas-service";
-import { SvgService } from "./svg-service";
+import { PathDefinition, SvgService } from "./svg-service";
 import { WindowService } from "./window-service";
 
 type Count = number;
@@ -7,35 +7,37 @@ type Angle = number;
 
 interface Sizes {
   [size: string]: {
-    [color: string]: Count
-  }
+    [color: string]: Count;
+  };
 }
 
 interface CreateFindablesOptions {
   [category: string]: {
     [image: string]: {
-      defaultSize: number;
-      sizes: Sizes;
-    }
-  }
+      defaultSize: {
+        height: number;
+        width: number;
+      };
+      color?: string;
+      count: number;
+      scaledHeightInPixels: number;
+    };
+  };
 }
 
 export interface Findable {
   id: number;
   d: string;
+  pathDefinitions: PathDefinition[];
   targetFillPath: Path2D;
+  // Overwrite default color?
   color?: string;
-  fillRule?: CanvasFillRule;
-  size: number;
   transformation: {
     translate: {
       x: number;
       y: number;
     };
-    scale: {
-      x: number;
-      y: number;
-    };
+    scale: number;
     rotate?: Angle;
   };
 }
@@ -55,58 +57,63 @@ export class FindablesService {
     Object.keys(options).forEach((category) => {
       Object.keys(options[category]).forEach((imageName) => {
         const imageOptions = options[category][imageName];
+        debugger;
         FindablesService.generateFindablesForImage({
           category,
+          color: imageOptions.color,
           image: imageName,
           defaultSize: imageOptions.defaultSize,
-          sizes: imageOptions.sizes
+          scaledHeightInPixels: imageOptions.scaledHeightInPixels,
+          count: imageOptions.count,
         });
       });
     });
+    // Testing
+    CanvasService.drawBackground();
   }
 
-  private static generateFindablesForImage(options: {category: string, image: string, defaultSize: number, sizes: Sizes}) {
-    const pathDefs = SvgService.getSvgPathDefinitions(options.category, options.image);
+  private static generateFindablesForImage(options: {
+    category: string;
+    image: string;
+    defaultSize: { height: number; width: number };
+    scaledHeightInPixels: number;
+    count: number;
+    color?: string;
+  }) {
+    const pathDefs = SvgService.getSvgPathDefinitions(
+      options.category,
+      options.image
+    );
     if (!pathDefs) return;
 
-    Object.keys(options.sizes).forEach((size) => {
-      const sizeNum = Number(size);
-      const sizeColors = options.sizes[size];
-      Object.keys(sizeColors).forEach(color => {
-        const canvasScale = sizeNum / options.defaultSize;
-        for (let count = sizeColors[color]; count >= 0; count--) {
-          pathDefs.forEach((path) => {
-            const translation = FindablesService.generateRandomTranslation(sizeNum);
-            const findable: Partial<Findable> = {
-              id: FindablesService.instance.idIncrementer++,
-              d: path.d,
-              size: sizeNum,
-              transformation: {
-                translate: translation,
-                scale: {
-                  x: canvasScale,
-                  y: canvasScale,
-                },
-                rotate: FindablesService.generateRandomRotation(-10, 10)
-              }
-            };
-            findable.color = color;
-            if (path.fillRule) {
-              findable.fillRule = path.fillRule;
-            }
-            FindablesService.addFindableToCanvas(findable);
-          });
+    let scaledHeight = options.defaultSize.height;
+    if (options.scaledHeightInPixels) {
+      scaledHeight = options.scaledHeightInPixels;
+    }
+    const canvasScale = scaledHeight / options.defaultSize.height;
+
+    for (let x = 0; x < options.count; x++) {
+      const translation = FindablesService.generateRandomTranslation({height: options.defaultSize.height, width: options.defaultSize.width});
+      const findable: Partial<Findable> = {
+        id: FindablesService.instance.idIncrementer++,
+        pathDefinitions: pathDefs,
+        color: options.color,
+        transformation: {
+          translate: translation,
+          scale: canvasScale
         }
-      });
-    });
+      };
+      FindablesService.addFindableToCanvas(findable);
+    }
   }
 
   private static addFindableToCanvas(findable: Partial<Findable>) {
+    console.log(findable);
     const targetPath = CanvasService.drawFindable(<Findable>findable);
     if (!targetPath) {
       return;
     }
-    const add = {...findable};
+    const add = { ...findable };
     add.targetFillPath = targetPath;
     FindablesService.instance.visibleFindables.push(<Findable>add);
   }
@@ -119,16 +126,16 @@ export class FindablesService {
     return Math.floor(Math.random() * (maxFloored - minCeiled + 1) + minCeiled);
   }
 
-  private static generateRandomTranslation(size: number) {
+  private static generateRandomTranslation(size: {height: number, width: number}) {
     const dimensions = WindowService.getDimensions();
-    const upper = dimensions.height - size;
-    const lower = size;
-    const left = size;
-    const right = dimensions.width - size;
+    const upper = dimensions.height - size.height;
+    const lower = size.height;
+    const left = size.width;
+    const right = dimensions.width - size.width;
     return {
       x: FindablesService.getRandomIntInclusive(left, right),
-      y: FindablesService.getRandomIntInclusive(lower, upper)
-    }
+      y: FindablesService.getRandomIntInclusive(lower, upper),
+    };
   }
 
   private static generateRandomRotation(minDeg: number, maxDeg: number) {
