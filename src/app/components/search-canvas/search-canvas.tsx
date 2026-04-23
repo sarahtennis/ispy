@@ -41,7 +41,7 @@ export default function SearchCanvas() {
     if (backgroundCanvasRef.current) {
       CanvasService.setBackgroundCanvasElement(backgroundCanvasRef.current);
     }
-    await ScenarioService.loadScenario('fruit');
+    await ScenarioService.loadScenario();
   }
 
   return (

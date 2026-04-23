@@ -55,13 +55,13 @@ export class CanvasService {
     context.translate(translate.x, translate.y);
 
     const scale = findable.transformation.scale;
-    context.scale(scale.x, scale.y);
+    context.scale(scale, scale);
 
     if (findable.transformation.rotate) {
       context.rotate((findable.transformation.rotate * Math.PI) / 180);
     }
 
-    context.lineWidth = 3 / scale.x;
+    context.lineWidth = 3 / scale;
     context.strokeStyle = "#000";
 
     if (findable.pathDefinitions.length === 1) {
@@ -70,7 +70,7 @@ export class CanvasService {
         const path = new Path2D(def.d);
         context.stroke(path);
         if (def.color) {
-          context.fillStyle = def.color;
+          context.fillStyle = findable.color || def.color;
         }
         context.fill(path);
         context.restore();

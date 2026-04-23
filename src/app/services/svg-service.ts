@@ -84,6 +84,9 @@ export class SvgService {
                 color,
                 d
               };
+              if (index >= paths.length - 1) {
+                pathDefs.push(<PathDefinition>insertObject);
+              }
             } else {
               // Check to see if we can combine ds from paths
               if (color === insertObject.color) {
@@ -95,7 +98,7 @@ export class SvgService {
                   color,
                   d
                 };
-                if (index >= paths.length) {
+                if (index >= paths.length - 1) {
                   pathDefs.push(<PathDefinition>insertObject);
                 }
               }
